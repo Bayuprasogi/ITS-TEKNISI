@@ -28,7 +28,7 @@
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
             <div class="text-sm">
                 Show 
-                <select class="border border-gray-300 rounded px-2 py-1 mx-1 focus:outline-none">
+                <select id="entriesPerPage" class="border border-gray-300 rounded px-2 py-1 mx-1 focus:outline-none">
                     <option>10</option>
                     <option>25</option>
                     <option>50</option>
@@ -37,7 +37,7 @@
             </div>
             <div class="text-sm flex items-center gap-2">
                 <span>Search:</span>
-                <input type="text" class="border border-gray-300 rounded px-3 py-1 w-64 focus:outline-none focus:border-blue-500" placeholder="Cari data...">
+                <input type="text" id="searchInput" class="border border-gray-300 rounded px-3 py-1 w-64 focus:outline-none focus:border-blue-500" placeholder="Cari data...">
             </div>
         </div>
 
@@ -45,135 +45,156 @@
             <h3 class="text-md font-semibold text-gray-800 mb-4 flex items-center gap-2">
                 <i class="fa-solid fa-plus-circle text-blue-600"></i> Input Data Teknisi Baru
             </h3>
-            <form id="formTeknisi" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 text-sm">
-                <div>
-                    <label class="block font-medium mb-1">Tgl Item Diterima</label>
-                    <input type="date" id="tglDiterima" required class="w-full border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-blue-500">
+            <form id="formTeknisi" class="space-y-6 text-sm">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div class="rounded-lg border border-gray-200 p-4 bg-white">
+                        <h4 class="font-semibold text-gray-800 mb-3">Teknisi</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block font-medium mb-1">Tanggal Diterima</label>
+                                <input type="date" id="tglDiterima" required class="w-full border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-blue-500">
+                            </div>
+                            <div>
+                                <label class="block font-medium mb-1">Item / Nama Barang</label>
+                                <input type="text" id="namaBarang" required class="w-full border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-blue-500" placeholder="Contoh: BENCH SCALE">
+                            </div>
+                            <div>
+                                <label class="block font-medium mb-1">Customer</label>
+                                <input type="text" id="customer" required class="w-full border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-blue-500" placeholder="Nama PT / Perorangan">
+                            </div>
+                            <div>
+                                <label class="block font-medium mb-1">Serial Number</label>
+                                <input type="text" id="serialNumber" class="w-full border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-blue-500">
+                            </div>
+                            <div>
+                                <label class="block font-medium mb-1">Quantity</label>
+                                <input type="number" id="qtyIn" value="1" min="1" class="w-full border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-blue-500">
+                            </div>
+                            <div>
+                                <label class="block font-medium mb-1">Garansi</label>
+                                <select id="garansi" class="w-full border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-blue-500">
+                                    <option>Garansi</option>
+                                    <option>Non-Garansi</option>
+                                </select>
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block font-medium mb-1">Kerusakan dan Indikasi</label>
+                                <input type="text" id="kerusakan" class="w-full border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-blue-500">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block font-medium mb-1">Perbaikan</label>
+                                <input type="text" id="perbaikan" class="w-full border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-blue-500">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block font-medium mb-1">Item Pergantian</label>
+                                <input type="text" id="pergantian" class="w-full border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-blue-500">
+                            </div>
+                            <div>
+                                <label class="block font-medium mb-1">Tanggal Pengecekan</label>
+                                <input type="date" id="tglPengecekan" class="w-full border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-blue-500">
+                            </div>
+                            <div>
+                                <label class="block font-medium mb-1">Nama Sales</label>
+                                <select id="namaSales" class="w-full border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-blue-500">
+                                    <option value="">-- Pilih Sales --</option>
+                                    <option>Wahyu</option>
+                                    <option>Nauval</option>
+                                    <option>Dio</option>
+                                    <option>Chandra</option>
+                                    <option>Dikky</option>
+                                    <option>Rudi</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block font-medium mb-1">Status Teknisi</label>
+                                <select id="statusTeknisi" class="w-full border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-blue-500">
+                                    <option>OPEN</option>
+                                    <option>CLOSE</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block font-medium mb-1">Tanggal Selesai</label>
+                                <input type="date" id="tglSelesai" class="w-full border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-blue-500">
+                            </div>
+                            <div>
+                                <label class="block font-medium mb-1">Nama Teknisi</label>
+                                <select id="namaTeknisi" class="w-full border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-blue-500">
+                                    <option value="">-- Pilih Teknisi --</option>
+                                    <option>Abdul kholik</option>
+                                    <option>Wika</option>
+                                    <option>Radinsyach</option>
+                                    <option>Alwahdi</option>
+                                    <option>Nur Rohman</option>
+                                    <option>IMI/SSC</option>
+                                </select>
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block font-medium mb-1">Status Barang</label>
+                                <select id="statusBarang" class="w-full border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-blue-500">
+                                    <option value="">-- Pilih Status Barang --</option>
+                                    <option>Baik</option>
+                                    <option>Pending</option>
+                                    <option>Rusak</option>
+                                </select>
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block font-medium mb-1">Keterangan</label>
+                                <input type="text" id="keterangan" class="w-full border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-blue-500" placeholder="Keterangan tambahan...">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="rounded-lg border border-gray-200 p-4 bg-white">
+                        <h4 class="font-semibold text-gray-800 mb-3">Sales</h4>
+                        <div class="grid grid-cols-1 gap-4">
+                            <div>
+                                <label class="block font-medium mb-1">Status Service</label>
+                                <select id="statusService" class="w-full border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-blue-500">
+                                    <option>Lanjut Service</option>
+                                    <option>Batal Service</option>
+                                    <option>Service IMI</option>
+                                    <option>Service SSC</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block font-medium mb-1">Tanggal Status Service</label>
+                                <input type="date" id="tglStatusService" class="w-full border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-blue-500">
+                            </div>
+                        </div>
+                        <h4 class="font-semibold text-gray-800 mt-6 mb-3">Admin Sales</h4>
+                        <div class="grid grid-cols-1 gap-4">
+                            <div>
+                                <label class="block font-medium mb-1">Konfirmasi Admin Sales</label>
+                                <select id="konfirmasiSales" class="w-full border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-blue-500">
+                                    <option value="">-- Pilih Konfirmasi --</option>
+                                    <option>PO</option>
+                                    <option>DONE PO</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block font-medium mb-1">Tanggal Konfirmasi</label>
+                                <input type="date" id="tglKonfirmasi" class="w-full border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-blue-500">
+                            </div>
+                        </div>
+                        <h4 class="font-semibold text-gray-800 mt-6 mb-3">Logistik</h4>
+                        <div class="grid grid-cols-1 gap-4">
+                            <div>
+                                <label class="block font-medium mb-1">Konfirmasi Admin Pengiriman</label>
+                                <select id="konfirmasiKirim" class="w-full border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-blue-500">
+                                    <option value="">-- Pilih Status --</option>
+                                    <option value="Kirim">Kirim</option>
+                                    <option value="Pending Pengiriman">Pending Pengiriman</option>
+                                    <option value="Tera Metrologi">Tera Metrologi</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block font-medium mb-1">Tanggal Konfirmasi Pengiriman</label>
+                                <input type="date" id="tglKonfirmasiKirim" class="w-full border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-blue-500">
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    <label class="block font-medium mb-1">Item / Nama Barang</label>
-                    <input type="text" id="namaBarang" required class="w-full border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-blue-500" placeholder="Contoh: BENCH SCALE">
-                </div>
-                <div>
-                    <label class="block font-medium mb-1">Customer</label>
-                    <input type="text" id="customer" required class="w-full border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-blue-500" placeholder="Nama PT / Perorangan">
-                </div>
-                <div>
-                    <label class="block font-medium mb-1">Serial Number (SN)</label>
-                    <input type="text" id="serialNumber" class="w-full border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-blue-500">
-                </div>
-                <div>
-                    <label class="block font-medium mb-1">Quantity In</label>
-                    <input type="number" id="qtyIn" value="1" min="1" class="w-full border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-blue-500">
-                </div>
-                <div>
-                    <label class="block font-medium mb-1">Garansi</label>
-                    <select id="garansi" class="w-full border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-blue-500">
-                        <option>Garansi</option>
-                        <option>Non-Garansi</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block font-medium mb-1">Kerusakan & Indikasi</label>
-                    <input type="text" id="kerusakan" class="w-full border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-blue-500">
-                </div>
-                <div>
-                    <label class="block font-medium mb-1">Perbaikan</label>
-                    <input type="text" id="perbaikan" class="w-full border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-blue-500">
-                </div>
-                <div>
-                    <label class="block font-medium mb-1">Item Pergantian</label>
-                    <input type="text" id="pergantian" class="w-full border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-blue-500">
-                </div>
-                <div>
-                    <label class="block font-medium mb-1">Tgl Pengecekkan</label>
-                    <input type="date" id="tglPengecekan" class="w-full border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-blue-500">
-                </div>
-                <div>
-                    <label class="block font-medium mb-1">Nama Sales</label>
-                    <select id="namaSales" class="w-full border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-blue-500">
-                        <option value="">-- Pilih Sales --</option>
-                        <option>Wahyu</option>
-                        <option>Nauval</option>
-                        <option>Dio</option>
-                        <option>Chandra</option>
-                        <option>Dikky</option>
-                        <option>Rudi</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block font-medium mb-1">Status Service</label>
-                    <select id="statusService" class="w-full border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-blue-500">
-                        <option>Lanjut Service</option>
-                        <option>Batal Service</option>
-                        <option>Service IMI</option>
-                        <option>Service SSC</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block font-medium mb-1">Tgl Status Service</label>
-                    <input type="date" id="tglStatusService" class="w-full border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-blue-500">
-                </div>
-                <div>
-                    <label class="block font-medium mb-1">Konfirmasi Admin Sales</label>
-                    <select id="konfirmasiSales" class="w-full border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-blue-500">
-                        <option value="">-- Pilih Konfirmasi --</option>
-                        <option>PO</option>
-                        <option>DONE PO</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block font-medium mb-1">Tanggal Konfirmasi</label>
-                    <input type="date" id="tglKonfirmasi" class="w-full border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-blue-500">
-                </div>
-                <div>
-                    <label class="block font-medium mb-1">Date Out</label>
-                    <input type="date" id="dateOut" class="w-full border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-blue-500">
-                </div>
-                <div>
-                    <label class="block font-medium mb-1">Status Teknisi</label>
-                    <select id="statusTeknisi" class="w-full border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-blue-500">
-                        <option>OPEN</option>
-                        <option>CLOSE</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block font-medium mb-1">Tgl Selesai</label>
-                    <input type="date" id="tglSelesai" class="w-full border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-blue-500">
-                </div>
-                <div>
-                    <div>
-    <label class="block font-medium mb-1">Konfirmasi Admin Pengiriman</label>
-    <select id="konfirmasiKirim" class="w-full border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-blue-500">
-        <option value="">-- Pilih Status --</option>
-        <option value="Kirim">Kirim</option>
-        <option value="Pending Pengiriman">Pending Pengiriman</option>
-        <option value="Tera Metrologi">Tera Metrologi</option>
-    </select>
-</div>
-                </div>
-                <div>
-                    <label class="block font-medium mb-1">Tgl Konfirmasi Pengiriman</label>
-                    <input type="date" id="tglKonfirmasiKirim" class="w-full border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-blue-500">
-                </div>
-                <div>
-                    <label class="block font-medium mb-1">Nama Teknisi</label>
-                    <select id="namaTeknisi" class="w-full border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-blue-500">
-                        <option value="">-- Pilih Teknisi --</option>
-                        <option>Abdul kholik</option>
-                        <option>Wika</option>
-                        <option>Radinsyach</option>
-                        <option>Alwahdi</option>
-                        <option>Nur Rohman</option>
-                        <option>IMI/SSC</option>
-                    </select>
-                </div>
-                <div class="md:col-span-2 lg:col-span-3">
-                    <label class="block font-medium mb-1">Keterangan</label>
-                    <input type="text" id="keterangan" class="w-full border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:border-blue-500" placeholder="Keterangan tambahan...">
-                </div>
-                <div class="flex items-end">
-                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-1.5 px-4 rounded transition shadow">
+                <div class="flex justify-end">
+                    <button type="submit" id="submitButton" class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded transition shadow">
                         Simpan Data
                     </button>
                 </div>
@@ -204,15 +225,31 @@
                         <th class="px-4 py-3 border-r border-gray-200">Date Out</th>
                         <th class="px-4 py-3 border-r border-gray-200">Status Teknisi</th>
                         <th class="px-4 py-3 border-r border-gray-200">Tgl Selesai</th>
+                        <th class="px-4 py-3 border-r border-gray-200">Nama Teknisi</th>
+                        <th class="px-4 py-3 border-r border-gray-200">Status Barang</th>
                         <th class="px-4 py-3 border-r border-gray-200">Konfirmasi Admin Kirim</th>
                         <th class="px-4 py-3 border-r border-gray-200">Tgl Konfirmasi Kirim</th>
-                        <th class="px-4 py-3 border-r border-gray-200">Nama Teknisi</th>
                         <th class="px-4 py-3">Keterangan</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody" class="divide-y divide-gray-200 bg-white text-gray-600 text-nowrap">
                 </tbody>
             </table>
+        </div>
+
+        </div>
+
+        <div id="detailModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 px-4 py-8">
+            <div class="w-full max-w-3xl rounded-xl bg-white shadow-xl overflow-hidden">
+                <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+                    <h3 class="text-lg font-semibold">Detail Data Teknisi</h3>
+                    <button id="closeModal" class="text-gray-500 hover:text-gray-800"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div id="modalContent" class="space-y-3 p-6 text-sm text-gray-700"></div>
+                <div class="border-t border-gray-200 px-6 py-4 text-right">
+                    <button id="closeModalFooter" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded">Tutup</button>
+                </div>
+            </div>
         </div>
 
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-4 text-sm text-gray-500">
