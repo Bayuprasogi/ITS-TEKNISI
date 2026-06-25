@@ -1,41 +1,98 @@
 document.addEventListener("DOMContentLoaded", function() {
-    // Atur tanggal default ke hari ini
     const today = new Date().toISOString().split('T')[0];
     if(document.getElementById('filterStart')) document.getElementById('filterStart').value = today;
     if(document.getElementById('filterEnd')) document.getElementById('filterEnd').value = today;
     
-    // Render tabel pertama kali
     renderTable();
 
-    // Hubungkan tombol export ke fungsi exportExcel
     const exportBtn = document.querySelector('button[class*="bg-[#2B3441]"]');
     if (exportBtn) {
         exportBtn.addEventListener('click', exportExcel);
     }
 
-    // EVENT LISTENERS UNTUK FILTER, SEARCH, DAN PAGINATION
+    // TAB NAVIGATION
+    const tabData = document.getElementById('tabData');
+    const tabDashboard = document.getElementById('tabDashboard');
+    const contentData = document.getElementById('contentData');
+    const contentDashboard = document.getElementById('contentDashboard');
+
+    if (tabData) {
+        tabData.addEventListener('click', () => {
+            contentData.classList.remove('hidden');
+            contentDashboard.classList.add('hidden');
+            tabData.classList.add('tab-active');
+            tabData.classList.remove('tab-inactive');
+            tabDashboard.classList.remove('tab-active');
+            tabDashboard.classList.add('tab-inactive');
+        });
+    }
+
+    if (tabDashboard) {
+        tabDashboard.addEventListener('click', () => {
+            contentData.classList.add('hidden');
+            contentDashboard.classList.remove('hidden');
+            tabDashboard.classList.add('tab-active');
+            tabDashboard.classList.remove('tab-inactive');
+            tabData.classList.remove('tab-active');
+            tabData.classList.add('tab-inactive');
+            renderDashboard();
+        });
+    }
+
+    // EVENT LISTENERS
     const searchInput = document.getElementById('searchInput');
+    const searchType = document.getElementById('searchType');
     const filterStart = document.getElementById('filterStart');
     const filterEnd = document.getElementById('filterEnd');
     const selectElem = document.getElementById('entriesPerPage');
+    const filterStatus = document.getElementById('filterStatus');
+    const filterTeknisi = document.getElementById('filterTeknisi');
+    const btnResetFilter = document.getElementById('btnResetFilter');
+    const btnTambahStatus = document.getElementById('btnTambahStatus');
+
     const detailModal = document.getElementById('detailModal');
+    const statusModal = document.getElementById('statusModal');
     const closeModalBtn = document.getElementById('closeModal');
     const closeModalFooter = document.getElementById('closeModalFooter');
+    const closeStatusModal = document.getElementById('closeStatusModal');
+    const closeStatusFormBtn = document.getElementById('closeStatusFormBtn');
 
     if (searchInput) searchInput.addEventListener('input', renderTable);
+    if (searchType) searchType.addEventListener('change', renderTable);
     if (filterStart) filterStart.addEventListener('change', renderTable);
     if (filterEnd) filterEnd.addEventListener('change', renderTable);
     if (selectElem) selectElem.addEventListener('change', renderTable);
+    if (filterStatus) filterStatus.addEventListener('change', renderTable);
+    if (filterTeknisi) filterTeknisi.addEventListener('change', renderTable);
+    if (btnResetFilter) btnResetFilter.addEventListener('click', resetFilters);
+    if (btnTambahStatus) btnTambahStatus.addEventListener('click', openStatusModal);
+
     if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
     if (closeModalFooter) closeModalFooter.addEventListener('click', closeModal);
+    if (closeStatusModal) closeStatusModal.addEventListener('click', closeStatusModal_);
+    if (closeStatusFormBtn) closeStatusFormBtn.addEventListener('click', closeStatusModal_);
+
     if (detailModal) {
         detailModal.addEventListener('click', function(event) {
             if (event.target === detailModal) closeModal();
         });
     }
+
+    if (statusModal) {
+        statusModal.addEventListener('click', function(event) {
+            if (event.target === statusModal) closeStatusModal_();
+        });
+    }
+
+    const formStatusUpdate = document.getElementById('formStatusUpdate');
+    if (formStatusUpdate) {
+        formStatusUpdate.addEventListener('submit', handleStatusUpdate);
+    }
+
+    populateStatusModal();
 });
 
-// Variabel global untuk melacak halaman aktif saat ini (Pagination)
+// Variabel global
 let currentPage = 1;
 let currentEditIndex = null;
 
@@ -43,58 +100,218 @@ function getData() {
     return JSON.parse(localStorage.getItem('dataTeknisi')) || [];
 }
 
+function resetFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('searchType').value = 'all';
+    document.getElementById('filterStatus').value = '';
+    document.getElementById('filterTeknisi').value = '';
+    renderTable();
+}
+
+function openStatusModal() {
+    const modal = document.getElementById('statusModal');
+    if (modal) modal.classList.remove('hidden');
+    populateStatusModal();
+}
+
+function closeStatusModal_() {
+    const modal = document.getElementById('statusModal');
+    if (modal) modal.classList.add('hidden');
+    document.getElementById('formStatusUpdate').reset();
+}
+
+function populateStatusModal() {
+    const dataArr = getData();
+    const select = document.getElementById('statusSelectData');
+    if (!select) return;
+
+    select.innerHTML = '<option value="">-- Pilih Data Service --</option>';
+    dataArr.forEach((item, index) => {
+        const option = document.createElement('option');
+        option.value = index;
+        option.textContent = `${item.namaBarang} (SN: ${item.serialNumber}) - ${item.customer}`;
+        select.appendChild(option);
+    });
+}
+
+function handleStatusUpdate(e) {
+    e.preventDefault();
+    const selectIndex = document.getElementById('statusSelectData').value;
+    const newStatus = document.getElementById('statusUpdateTeknisi').value;
+    const updateDate = document.getElementById('statusUpdateDate').value;
+    const notes = document.getElementById('statusUpdateNotes').value;
+
+    if (!selectIndex) {
+        alert('Pilih data terlebih dahulu!');
+        return;
+    }
+
+    const dataArr = getData();
+    if (dataArr[selectIndex]) {
+        dataArr[selectIndex].statusTeknisi = newStatus;
+        if (newStatus === 'CLOSE') {
+            dataArr[selectIndex].tglSelesai = updateDate || dataArr[selectIndex].tglSelesai;
+        }
+        if (notes) {
+            dataArr[selectIndex].keterangan = notes;
+        }
+        localStorage.setItem('dataTeknisi', JSON.stringify(dataArr));
+        alert('Status berhasil diupdate!');
+        renderTable();
+        renderDashboard();
+        closeStatusModal_();
+    }
+}
+
+function renderDashboard() {
+    const dataArr = getData();
+    
+    // Calculate stats
+    const totalService = dataArr.length;
+    const statusOpen = dataArr.filter(item => item.statusTeknisi === 'OPEN').length;
+    const statusClose = dataArr.filter(item => item.statusTeknisi === 'CLOSE').length;
+    
+    // Get unique teknisi
+    const teknisiSet = new Set(dataArr.map(item => item.namaTeknisi).filter(t => t));
+    const techCount = teknisiSet.size;
+
+    document.getElementById('dashTotalService').textContent = totalService;
+    document.getElementById('dashStatusOpen').textContent = statusOpen;
+    document.getElementById('dashStatusClose').textContent = statusClose;
+    document.getElementById('dashTechCount').textContent = techCount;
+
+    // Status per teknisi
+    const detailDiv = document.getElementById('dashTeknisiDetail');
+    detailDiv.innerHTML = '';
+    const teknikerMap = {};
+    dataArr.forEach(item => {
+        const tech = item.namaTeknisi || 'N/A';
+        if (!teknikerMap[tech]) {
+            teknikerMap[tech] = { open: 0, close: 0 };
+        }
+        if (item.statusTeknisi === 'OPEN') teknikerMap[tech].open++;
+        else if (item.statusTeknisi === 'CLOSE') teknikerMap[tech].close++;
+    });
+
+    Object.entries(teknikerMap).forEach(([tech, count]) => {
+        const div = document.createElement('div');
+        div.className = 'flex justify-between items-center p-2 bg-gray-50 rounded';
+        div.innerHTML = `
+            <span class="font-medium">${tech}</span>
+            <div class="flex gap-2 text-xs">
+                <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded">OPEN: ${count.open}</span>
+                <span class="bg-green-100 text-green-800 px-2 py-1 rounded">CLOSE: ${count.close}</span>
+            </div>
+        `;
+        detailDiv.appendChild(div);
+    });
+
+    // Service status breakdown
+    const statusDiv = document.getElementById('dashStatusDetail');
+    statusDiv.innerHTML = '';
+    const statuses = ['Lanjut Service', 'Batal Service', 'Service IMI', 'Service SSC'];
+    statuses.forEach(status => {
+        const count = dataArr.filter(item => item.statusService === status).length;
+        const div = document.createElement('div');
+        div.className = 'flex justify-between p-2 bg-gray-50 rounded';
+        div.innerHTML = `
+            <span>${status}</span>
+            <span class="font-semibold">${count}</span>
+        `;
+        statusDiv.appendChild(div);
+    });
+
+    // Service list by teknisi
+    const listDiv = document.getElementById('dashTechniqueList');
+    listDiv.innerHTML = '';
+    Object.entries(teknikerMap).forEach(([tech, count]) => {
+        const techServices = dataArr.filter(item => item.namaTeknisi === tech);
+        const section = document.createElement('div');
+        section.className = 'border border-gray-300 rounded p-3';
+        section.innerHTML = `
+            <h5 class="font-semibold text-sm mb-2">${tech} (${techServices.length} item)</h5>
+            <div class="space-y-1 text-xs">
+                ${techServices.map(s => `
+                    <div class="flex justify-between items-center p-1 bg-gray-50 rounded">
+                        <span>${s.namaBarang || '-'}</span>
+                        <span class="badge ${s.statusTeknisi === 'CLOSE' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'} px-2 py-0.5 rounded">${s.statusTeknisi || 'OPEN'}</span>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+        listDiv.appendChild(section);
+    });
+}
+
 function renderTable() {
     const dataArr = getData();
     const tbody = document.getElementById('tableBody');
     if (!tbody) return;
     
-    // 1. AMBIL NILAI FILTER & SEARCH
+    // Get filter values
     const searchInput = document.getElementById('searchInput');
+    const searchType = document.getElementById('searchType');
     const keyword = searchInput ? searchInput.value.toLowerCase() : '';
+    const sType = searchType ? searchType.value : 'all';
     
     const filterStart = document.getElementById('filterStart') ? document.getElementById('filterStart').value : '';
     const filterEnd = document.getElementById('filterEnd') ? document.getElementById('filterEnd').value : '';
     
+    const filterStatus = document.getElementById('filterStatus') ? document.getElementById('filterStatus').value : '';
+    const filterTeknisi = document.getElementById('filterTeknisi') ? document.getElementById('filterTeknisi').value : '';
+    
     const selectElem = document.getElementById('entriesPerPage');
     const entriesPerPage = selectElem ? parseInt(selectElem.value) : 10;
 
-    // 2. PROSES FILTERING (Search & Date Filter)
+    // Filtering
     const filteredData = dataArr.filter(item => {
-        // Filter Berdasarkan Pencarian (Memeriksa beberapa kolom utama)
-        const matchKeyword = 
-            (item.namaBarang && item.namaBarang.toLowerCase().includes(keyword)) ||
-            (item.customer && item.customer.toLowerCase().includes(keyword)) ||
-            (item.serialNumber && item.serialNumber.toLowerCase().includes(keyword)) ||
-            (item.namaTeknisi && item.namaTeknisi.toLowerCase().includes(keyword)) ||
-            (item.namaSales && item.namaSales.toLowerCase().includes(keyword));
+        let matchKeyword = true;
+        if (keyword) {
+            if (sType === 'serial') {
+                matchKeyword = item.serialNumber && item.serialNumber.toLowerCase().includes(keyword);
+            } else if (sType === 'barang') {
+                matchKeyword = item.namaBarang && item.namaBarang.toLowerCase().includes(keyword);
+            } else if (sType === 'customer') {
+                matchKeyword = item.customer && item.customer.toLowerCase().includes(keyword);
+            } else {
+                matchKeyword = 
+                    (item.namaBarang && item.namaBarang.toLowerCase().includes(keyword)) ||
+                    (item.customer && item.customer.toLowerCase().includes(keyword)) ||
+                    (item.serialNumber && item.serialNumber.toLowerCase().includes(keyword)) ||
+                    (item.namaTeknisi && item.namaTeknisi.toLowerCase().includes(keyword)) ||
+                    (item.namaSales && item.namaSales.toLowerCase().includes(keyword));
+            }
+        }
 
-        // Filter Berdasarkan Rentang Tanggal (Berdasarkan tglDiterima)
         let matchDate = true;
         if (item.tglDiterima) {
             if (filterStart && item.tglDiterima < filterStart) matchDate = false;
             if (filterEnd && item.tglDiterima > filterEnd) matchDate = false;
         } else if (filterStart || filterEnd) {
-            matchDate = false; // Jika filter diisi tapi data tidak punya tanggal
+            matchDate = false;
         }
 
-        return matchKeyword && matchDate;
+        let matchStatus = true;
+        if (filterStatus && item.statusTeknisi !== filterStatus) matchStatus = false;
+
+        let matchTech = true;
+        if (filterTeknisi && item.namaTeknisi !== filterTeknisi) matchTech = false;
+
+        return matchKeyword && matchDate && matchStatus && matchTech;
     });
 
-    // 3. PROSES PAGINATION
+    // Pagination
     const totalEntries = filteredData.length;
     const totalPages = Math.ceil(totalEntries / entriesPerPage) || 1;
     
-    // Jaga agar halaman aktif tidak melampaui total halaman baru setelah difilter
     if (currentPage > totalPages) currentPage = totalPages;
     if (currentPage < 1) currentPage = 1;
 
     const startIndex = (currentPage - 1) * entriesPerPage;
     const endIndex = Math.min(startIndex + entriesPerPage, totalEntries);
     
-    // Potong data sesuai halaman aktif
     const paginatedData = filteredData.slice(startIndex, endIndex);
 
-    // 4. RENDER DATA KE TABEL HTML
     tbody.innerHTML = '';
 
     if (paginatedData.length === 0) {
@@ -144,14 +361,12 @@ function renderTable() {
         });
     }
 
-    // 5. UPDATE INFORMASI KETERANGAN TABEL (Showing X to Y of Z entries)
     const tableInfo = document.getElementById('tableInfo');
     if (tableInfo) {
         const displayStart = totalEntries > 0 ? startIndex + 1 : 0;
         tableInfo.innerText = `Showing ${displayStart} to ${endIndex} of ${totalEntries} entries`;
     }
 
-    // 6. RENDER TOMBOL PAGINATION (PREVIOUS / NEXT)
     renderPaginationControls(totalPages);
 }
 
