@@ -14,22 +14,30 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     // EVENT LISTENERS UNTUK FILTER, SEARCH, DAN PAGINATION
-    const searchInput = document.querySelector('input[placeholder="Cari data..."]');
+    const searchInput = document.getElementById('searchInput');
     const filterStart = document.getElementById('filterStart');
     const filterEnd = document.getElementById('filterEnd');
-    const showEntries = document.querySelector('select class*="border"'); // Selector dinamis atau sesuaikan jika ada ID
-
-    // Jika select entries belum ada ID, kita bisa targetkan select pertama di dalam class text-sm
-    const selectElem = document.querySelector('select'); 
+    const selectElem = document.getElementById('entriesPerPage');
+    const detailModal = document.getElementById('detailModal');
+    const closeModalBtn = document.getElementById('closeModal');
+    const closeModalFooter = document.getElementById('closeModalFooter');
 
     if (searchInput) searchInput.addEventListener('input', renderTable);
     if (filterStart) filterStart.addEventListener('change', renderTable);
     if (filterEnd) filterEnd.addEventListener('change', renderTable);
     if (selectElem) selectElem.addEventListener('change', renderTable);
+    if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
+    if (closeModalFooter) closeModalFooter.addEventListener('click', closeModal);
+    if (detailModal) {
+        detailModal.addEventListener('click', function(event) {
+            if (event.target === detailModal) closeModal();
+        });
+    }
 });
 
 // Variabel global untuk melacak halaman aktif saat ini (Pagination)
 let currentPage = 1;
+let currentEditIndex = null;
 
 function getData() {
     return JSON.parse(localStorage.getItem('dataTeknisi')) || [];
@@ -41,13 +49,13 @@ function renderTable() {
     if (!tbody) return;
     
     // 1. AMBIL NILAI FILTER & SEARCH
-    const searchInput = document.querySelector('input[placeholder="Cari data..."]');
+    const searchInput = document.getElementById('searchInput');
     const keyword = searchInput ? searchInput.value.toLowerCase() : '';
     
     const filterStart = document.getElementById('filterStart') ? document.getElementById('filterStart').value : '';
     const filterEnd = document.getElementById('filterEnd') ? document.getElementById('filterEnd').value : '';
     
-    const selectElem = document.querySelector('select');
+    const selectElem = document.getElementById('entriesPerPage');
     const entriesPerPage = selectElem ? parseInt(selectElem.value) : 10;
 
     // 2. PROSES FILTERING (Search & Date Filter)
@@ -90,18 +98,23 @@ function renderTable() {
     tbody.innerHTML = '';
 
     if (paginatedData.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="24" class="text-center py-4 text-gray-400">Tidak ada data yang cocok dengan filter</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="25" class="text-center py-4 text-gray-400">Tidak ada data yang cocok dengan filter</td></tr>`;
     } else {
         paginatedData.forEach((item, index) => {
-            // Hitung nomor urut asli berdasarkan indeks data keseluruhan
             const actualIndex = startIndex + index;
             const tr = document.createElement('tr');
             tr.className = "hover:bg-gray-50 transition";
             tr.innerHTML = `
                 <td class="px-3 py-2 border-r border-gray-200 text-center">${actualIndex + 1}</td>
-                <td class="px-3 py-2 border-r border-gray-200 text-center">
+                <td class="px-3 py-2 border-r border-gray-200 text-center space-x-1">
+                    <button onclick="viewData(${actualIndex})" class="bg-blue-500 hover:bg-blue-600 text-white text-xs px-2 py-1 rounded transition">
+                        <i class="fa-solid fa-eye"></i>
+                    </button>
+                    <button onclick="editData(${actualIndex})" class="bg-yellow-500 hover:bg-yellow-600 text-white text-xs px-2 py-1 rounded transition">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </button>
                     <button onclick="hapusData(${actualIndex})" class="bg-red-500 hover:bg-red-600 text-white text-xs px-2 py-1 rounded transition">
-                        <i class="fa-solid fa-trash"></i> Hapus
+                        <i class="fa-solid fa-trash"></i>
                     </button>
                 </td>
                 <td class="px-4 py-2 border-r border-gray-200">${item.tglDiterima || '-'}</td>
@@ -119,16 +132,12 @@ function renderTable() {
                 <td class="px-4 py-2 border-r border-gray-200">${item.tglStatusService || '-'}</td>
                 <td class="px-4 py-2 border-r border-gray-200">${item.konfirmasiSales || '-'}</td>
                 <td class="px-4 py-2 border-r border-gray-200">${item.tglKonfirmasi || '-'}</td>
-                <td class="px-4 py-2 border-r border-gray-200">${item.dateOut || '-'}</td>
-                <td class="px-4 py-2 border-r border-gray-200">
-                    <span class="px-2 py-0.5 rounded text-xs font-semibold ${item.statusTeknisi === 'CLOSE' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">
-                        ${item.statusTeknisi || 'OPEN'}
-                    </span>
-                </td>
+                <td class="px-4 py-2 border-r border-gray-200">${item.statusTeknisi || '-'}</td>
                 <td class="px-4 py-2 border-r border-gray-200">${item.tglSelesai || '-'}</td>
+                <td class="px-4 py-2 border-r border-gray-200">${item.namaTeknisi || '-'}</td>
+                <td class="px-4 py-2 border-r border-gray-200">${item.statusBarang || '-'}</td>
                 <td class="px-4 py-2 border-r border-gray-200">${item.konfirmasiKirim || '-'}</td>
                 <td class="px-4 py-2 border-r border-gray-200">${item.tglKonfirmasiKirim || '-'}</td>
-                <td class="px-4 py-2 border-r border-gray-200">${item.namaTeknisi || '-'}</td>
                 <td class="px-4 py-2">${item.keterangan || '-'}</td>
             `;
             tbody.appendChild(tr);
@@ -210,23 +219,29 @@ if (formTeknisi) {
             tglStatusService: document.getElementById('tglStatusService').value,
             konfirmasiSales: document.getElementById('konfirmasiSales').value,
             tglKonfirmasi: document.getElementById('tglKonfirmasi').value,
-            dateOut: document.getElementById('dateOut').value,
             statusTeknisi: document.getElementById('statusTeknisi').value,
             tglSelesai: document.getElementById('tglSelesai').value,
+            namaTeknisi: document.getElementById('namaTeknisi').value,
+            statusBarang: document.getElementById('statusBarang').value,
             konfirmasiKirim: document.getElementById('konfirmasiKirim').value,
             tglKonfirmasiKirim: document.getElementById('tglKonfirmasiKirim').value,
-            namaTeknisi: document.getElementById('namaTeknisi').value,
             keterangan: document.getElementById('keterangan').value
         };
 
         const dataArr = getData();
-        dataArr.push(newData);
+        if (currentEditIndex !== null && currentEditIndex >= 0 && currentEditIndex < dataArr.length) {
+            dataArr[currentEditIndex] = newData;
+            alert('Data berhasil diperbarui!');
+        } else {
+            dataArr.push(newData);
+            alert('Data berhasil disimpan!');
+        }
 
         localStorage.setItem('dataTeknisi', JSON.stringify(dataArr));
-
+        currentEditIndex = null;
+        document.getElementById('submitButton').innerText = 'Simpan Data';
         renderTable();
         formTeknisi.reset();
-        alert('Data berhasil disimpan!');
     });
 }
 
@@ -269,12 +284,12 @@ function exportExcel() {
             "Tgl Status Service": item.tglStatusService,
             "Konfirmasi Admin Sales": item.konfirmasiSales,
             "Tanggal Konfirmasi": item.tglKonfirmasi,
-            "Date Out": item.dateOut,
             "Status Teknisi": item.statusTeknisi,
             "Tanggal Selesai": item.tglSelesai,
+            "Nama Teknisi": item.namaTeknisi,
+            "Status Barang": item.statusBarang,
             "Konfirmasi Admin Kirim": item.konfirmasiKirim,
             "Tgl Konfirmasi Kirim": item.tglKonfirmasiKirim,
-            "Nama Teknisi": item.namaTeknisi,
             "Keterangan": item.keterangan
         }));
 
@@ -289,4 +304,79 @@ function exportExcel() {
     };
     
     document.head.appendChild(script);
+}
+
+function viewData(index) {
+    const dataArr = getData();
+    const item = dataArr[index];
+    if (!item) return;
+
+    const modal = document.getElementById('detailModal');
+    const modalContent = document.getElementById('modalContent');
+    if (!modal || !modalContent) return;
+
+    modalContent.innerHTML = `
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div><strong>Tanggal Diterima:</strong> ${item.tglDiterima || '-'}</div>
+            <div><strong>Item:</strong> ${item.namaBarang || '-'}</div>
+            <div><strong>Customer:</strong> ${item.customer || '-'}</div>
+            <div><strong>Serial Number:</strong> ${item.serialNumber || '-'}</div>
+            <div><strong>Quantity:</strong> ${item.qtyIn || '-'}</div>
+            <div><strong>Garansi:</strong> ${item.garansi || '-'}</div>
+            <div><strong>Kerusakan & Indikasi:</strong> ${item.kerusakan || '-'}</div>
+            <div><strong>Perbaikan:</strong> ${item.perbaikan || '-'}</div>
+            <div><strong>Item Pergantian:</strong> ${item.pergantian || '-'}</div>
+            <div><strong>Tanggal Pengecekan:</strong> ${item.tglPengecekan || '-'}</div>
+            <div><strong>Nama Sales:</strong> ${item.namaSales || '-'}</div>
+            <div><strong>Status Service:</strong> ${item.statusService || '-'}</div>
+            <div><strong>Tanggal Status Service:</strong> ${item.tglStatusService || '-'}</div>
+            <div><strong>Konfirmasi Admin Sales:</strong> ${item.konfirmasiSales || '-'}</div>
+            <div><strong>Tanggal Konfirmasi:</strong> ${item.tglKonfirmasi || '-'}</div>
+            <div><strong>Status Teknisi:</strong> ${item.statusTeknisi || '-'}</div>
+            <div><strong>Tanggal Selesai:</strong> ${item.tglSelesai || '-'}</div>
+            <div><strong>Nama Teknisi:</strong> ${item.namaTeknisi || '-'}</div>
+            <div><strong>Status Barang:</strong> ${item.statusBarang || '-'}</div>
+            <div><strong>Konfirmasi Admin Pengiriman:</strong> ${item.konfirmasiKirim || '-'}</div>
+            <div><strong>Tanggal Konfirmasi Pengiriman:</strong> ${item.tglKonfirmasiKirim || '-'}</div>
+            <div class="md:col-span-2"><strong>Keterangan:</strong> ${item.keterangan || '-'}</div>
+        </div>
+    `;
+    modal.classList.remove('hidden');
+}
+
+function editData(index) {
+    const dataArr = getData();
+    const item = dataArr[index];
+    if (!item) return;
+
+    currentEditIndex = index;
+    document.getElementById('tglDiterima').value = item.tglDiterima || '';
+    document.getElementById('namaBarang').value = item.namaBarang || '';
+    document.getElementById('customer').value = item.customer || '';
+    document.getElementById('serialNumber').value = item.serialNumber || '';
+    document.getElementById('qtyIn').value = item.qtyIn || '';
+    document.getElementById('garansi').value = item.garansi || 'Garansi';
+    document.getElementById('kerusakan').value = item.kerusakan || '';
+    document.getElementById('perbaikan').value = item.perbaikan || '';
+    document.getElementById('pergantian').value = item.pergantian || '';
+    document.getElementById('tglPengecekan').value = item.tglPengecekan || '';
+    document.getElementById('namaSales').value = item.namaSales || '';
+    document.getElementById('statusService').value = item.statusService || 'Lanjut Service';
+    document.getElementById('tglStatusService').value = item.tglStatusService || '';
+    document.getElementById('konfirmasiSales').value = item.konfirmasiSales || '';
+    document.getElementById('tglKonfirmasi').value = item.tglKonfirmasi || '';
+    document.getElementById('statusTeknisi').value = item.statusTeknisi || 'OPEN';
+    document.getElementById('tglSelesai').value = item.tglSelesai || '';
+    document.getElementById('namaTeknisi').value = item.namaTeknisi || '';
+    document.getElementById('statusBarang').value = item.statusBarang || '';
+    document.getElementById('konfirmasiKirim').value = item.konfirmasiKirim || '';
+    document.getElementById('tglKonfirmasiKirim').value = item.tglKonfirmasiKirim || '';
+    document.getElementById('keterangan').value = item.keterangan || '';
+    document.getElementById('submitButton').innerText = 'Perbarui Data';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function closeModal() {
+    const modal = document.getElementById('detailModal');
+    if (modal) modal.classList.add('hidden');
 }
